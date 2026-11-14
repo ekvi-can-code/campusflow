@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>CampusFlow</h1>
+<h2>Все аудитории:</h2>
+<table>
+    <tr><th>№</th><th>Корпус</th><th>Этаж</th><th>Вместимость</th><th>Оборудование</th><th></th></tr>
+    {% for r in rooms %}
+    <tr>
+        <td>{{ r.name }}</td>
+        <td>{{ r.building }}</td>
+        <td>{{ r.floor }}</td>
+        <td>{{ r.capacity }}</td>
+        <td>{{ r.equipment }}</td>
+        <td><a class="btn" href="{{ url_for('room_detail', room_id=r.id) }}">Слоты</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

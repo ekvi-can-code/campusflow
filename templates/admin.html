@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Админ-панель</h1>
+<h2>Добавить аудиторию</h2>
+<form method="post" action="{{ url_for('admin_add_room') }}">
+    <input type="text" name="name" placeholder="Номер" required>
+    <input type="text" name="building" placeholder="Корпус" required>
+    <input type="number" name="floor" placeholder="Этаж" required>
+    <input type="number" name="capacity" placeholder="Вместимость" required>
+    <input type="text" name="equipment" placeholder="Оборудование">
+    <button class="btn" type="submit">Добавить</button>
+</form>
+
+<h2>Все аудитории</h2>
+<table>
+    <tr><th>№</th><th>Корпус</th><th>Этаж</th><th>Вместимость</th><th>Оборудование</th><th></th></tr>
+    {% for r in rooms %}
+    <tr>
+        <td>{{ r.name }}</td><td>{{ r.building }}</td><td>{{ r.floor }}</td>
+        <td>{{ r.capacity }}</td><td>{{ r.equipment }}</td>
+        <td>
+            <form method="post" action="{{ url_for('admin_delete_room', room_id=r.id) }}" style="display:inline;">
+                <button class="btn btn-danger" type="submit">Удалить</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Все брони</h2>
+<table>
+    <tr><th>ID</th><th>Аудитория</th><th>Пользователь</th><th>Дата</th><th>Время</th><th>Статус</th><th></th></tr>
+    {% for b in bookings %}
+    <tr>
+        <td>{{ b.id }}</td><td>{{ b.room.name }}</td><td>{{ b.user.display_name }}</td>
+        <td>{{ b.date }}</td><td>{{ b.start_time }}-{{ b.end_time }}</td><td>{{ b.status }}</td>
+        <td>
+            {% if b.status == 'active' %}
+            <form method="post" action="{{ url_for('cancel_booking', booking_id=b.id) }}" style="display:inline;">
+                <button class="btn btn-danger" type="submit">Отменить</button>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

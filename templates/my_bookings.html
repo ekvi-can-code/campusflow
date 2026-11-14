@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Мои брони</h1>
+<table>
+    <tr><th>Аудитория</th><th>Дата</th><th>Время</th><th>Статус</th><th></th></tr>
+    {% for b in bookings %}
+    <tr>
+        <td>{{ b.room.name }}</td>
+        <td>{{ b.date }}</td>
+        <td>{{ b.start_time }} — {{ b.end_time }}</td>
+        <td>{{ b.status }}</td>
+        <td>
+            {% if b.status == 'active' %}
+            <form method="post" action="{{ url_for('cancel_booking', booking_id=b.id) }}" style="display:inline;">
+                <button class="btn btn-danger" type="submit">Отменить</button>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ room.name }} — Корпус {{ room.building }}, этаж {{ room.floor }}</h1>
+<p>Вместимость: {{ room.capacity }}, Оборудование: {{ room.equipment }}</p>
+<form method="get">
+    <input type="date" name="date" value="{{ date }}">
+    <button class="btn" type="submit">Показать</button>
+</form>
+<h2>Слоты на {{ date }}</h2>
+<table>
+    <tr><th>Время</th><th>Статус</th><th></th></tr>
+    {% for s in slots %}
+    <tr class="{% if s.free %}free{% else %}busy{% endif %}">
+        <td>{{ s.start }} — {{ s.end }}</td>
+        <td>{% if s.free %}Свободно{% else %}Занято{% endif %}</td>
+        <td>
+            {% if s.free %}
+            <form method="post" action="{{ url_for('book') }}" style="display:inline;">
+                <input type="hidden" name="room_id" value="{{ room.id }}">
+                <input type="hidden" name="date" value="{{ date }}">
+                <input type="hidden" name="start_time" value="{{ s.start }}">
+                <input type="hidden" name="end_time" value="{{ s.end }}">
+                <button class="btn btn-success" type="submit">Забронировать</button>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

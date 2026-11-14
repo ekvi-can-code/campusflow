@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Поиск аудиторий</h1>
+<form method="get">
+    <select name="building">
+        <option value="">Все корпуса</option>
+        <option value="A" {% if building == 'A' %}selected{% endif %}>Корпус A</option>
+        <option value="B" {% if building == 'B' %}selected{% endif %}>Корпус B</option>
+        <option value="C" {% if building == 'C' %}selected{% endif %}>Корпус C</option>
+    </select>
+    <input type="number" name="min_capacity" placeholder="Мин. вместимость" value="{{ min_capacity or '' }}">
+    <input type="text" name="equipment" placeholder="Оборудование" value="{{ equipment or '' }}">
+    <button class="btn" type="submit">Фильтр</button>
+</form>
+<table>
+    <tr><th>№</th><th>Корпус</th><th>Этаж</th><th>Вместимость</th><th>Оборудование</th><th></th></tr>
+    {% for r in rooms %}
+    <tr>
+        <td>{{ r.name }}</td>
+        <td>{{ r.building }}</td>
+        <td>{{ r.floor }}</td>
+        <td>{{ r.capacity }}</td>
+        <td>{{ r.equipment }}</td>
+        <td><a class="btn" href="{{ url_for('room_detail', room_id=r.id) }}">Слоты</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
