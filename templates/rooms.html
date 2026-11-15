@@ -9,8 +9,12 @@
         <option value="C" {% if building == 'C' %}selected{% endif %}>Корпус C</option>
     </select>
     <input type="number" name="min_capacity" placeholder="Мин. вместимость" value="{{ min_capacity or '' }}">
-    <input type="text" name="equipment" placeholder="Оборудование" value="{{ equipment or '' }}">
-    <button class="btn" type="submit">Фильтр</button>
+    <div style="margin: 10px 0;">
+        <label><input type="checkbox" name="equipment_list" value="projector" {% if 'projector' in (equipment or '') %}checked{% endif %}> Проектор</label>
+        <label><input type="checkbox" name="equipment_list" value="board" {% if 'board' in (equipment or '') %}checked{% endif %}> Доска</label>
+        <label><input type="checkbox" name="equipment_list" value="computers" {% if 'computers' in (equipment or '') %}checked{% endif %}> Компьютеры</label>
+    </div>
+    <button class="btn" type="submit">Поиск</button>
 </form>
 <table>
     <tr><th>№</th><th>Корпус</th><th>Этаж</th><th>Вместимость</th><th>Оборудование</th><th></th></tr>

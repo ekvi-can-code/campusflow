@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Статистика загрузки</h1>
+
+<div style="display: flex; gap: 20px; margin: 20px 0;">
+    <div class="card" style="flex: 1; text-align: center;">
+        <div style="font-size: 32px; font-weight: bold; color: #3498db;">{{ total_rooms }}</div>
+        <div>Всего аудиторий</div>
+    </div>
+    <div class="card" style="flex: 1; text-align: center;">
+        <div style="font-size: 32px; font-weight: bold; color: #27ae60;">{{ total_bookings }}</div>
+        <div>Активных броней</div>
+    </div>
+</div>
+
+<h2>Загрузка по корпусам</h2>
+<table>
+    <tr><th>Корпус</th><th>Количество броней</th></tr>
+    {% for building, count in by_building %}
+    <tr><td>{{ building }}</td><td>{{ count }}</td></tr>
+    {% endfor %}
+</table>
+
+<h2>Загрузка по дням</h2>
+<table>
+    <tr><th>Дата</th><th>Количество броней</th></tr>
+    {% for date_val, count in by_date %}
+    <tr><td>{{ date_val }}</td><td>{{ count }}</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

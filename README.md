@@ -35,3 +35,8 @@ python app.py
 
 ### Requirements / Требования
 - Python 3.10+
+
+## Testing via PyTest / Тестирование через PyTest
+```bash
+pytest testing.py -v
+```

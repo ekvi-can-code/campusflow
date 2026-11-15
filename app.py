@@ -46,15 +46,16 @@ def logout():
 def rooms():
     building = request.args.get('building')
     min_capacity = request.args.get('min_capacity', type=int)
-    equipment = request.args.get('equipment')
+    equipment_list = request.args.getlist('equipment_list')
+    equipment = ','.join(equipment_list) if equipment_list else ''
 
     query = Room.query
     if building:
         query = query.filter_by(building=building)
     if min_capacity:
         query = query.filter(Room.capacity >= min_capacity)
-    if equipment:
-        query = query.filter(Room.equipment.contains(equipment))
+    for eq in equipment_list:
+        query = query.filter(Room.equipment.contains(eq))
 
     rooms_list = query.all()
     return render_template('rooms.html', rooms=rooms_list, building=building,
@@ -91,19 +92,40 @@ def room_detail(room_id):
 @app.route('/book', methods=['POST'])
 @login_required
 def book():
+    if current_user.role == 'admin':
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify({'error': 'FORBIDDEN', 'message': 'Администраторы не могут создавать брони'}), 403
+        flash('Администраторы не могут создавать брони')
+        return redirect(
+            url_for('room_detail', room_id=request.form.get('room_id', type=int), date=request.form.get('date')))
+
     room_id = request.form.get('room_id', type=int)
-    date = request.form.get('date')
+    date_val = request.form.get('date')
     start_time = request.form.get('start_time')
     end_time = request.form.get('end_time')
 
-    existing = Booking.query.filter_by(room_id=room_id, date=date, status='active').all()
+    if start_time >= end_time:
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify({'error': 'INVALID_TIME', 'message': 'Время начала должно быть раньше времени окончания'}), 400
+        flash('Время начала должно быть раньше времени окончания')
+        return redirect(url_for('room_detail', room_id=room_id, date=date_val))
+
+    existing = Booking.query.filter_by(room_id=room_id, date=date_val, status='active').all()
     for b in existing:
         if not (end_time <= b.start_time or start_time >= b.end_time):
-            flash('Слот уже занят!')
-            return redirect(url_for('room_detail', room_id=room_id, date=date))
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify({'error': 'BOOKING_CONFLICT', 'message': 'Слот уже занят'}), 409
+            flash('Слот уже занят')
+            return redirect(url_for('room_detail', room_id=room_id, date=date_val))
 
-    booking = Booking(room_id=room_id, user_id=current_user.id, date=date,
-                      start_time=start_time, end_time=end_time, status='active')
+    booking = Booking(
+        room_id=room_id,
+        user_id=current_user.id,
+        date=date_val,
+        start_time=start_time,
+        end_time=end_time,
+        status='active'
+    )
     db.session.add(booking)
     db.session.commit()
     flash('Бронь создана')
@@ -136,6 +158,31 @@ def admin():
     bookings = Booking.query.all()
     rooms = Room.query.all()
     return render_template('admin.html', bookings=bookings, rooms=rooms)
+
+@app.route('/admin/stats')
+@login_required
+def admin_stats():
+    if current_user.role != 'admin':
+        flash('Доступ запрещен')
+        return redirect(url_for('index'))
+
+    from sqlalchemy import func
+    by_building = db.session.query(
+        Room.building, func.count(Booking.id)
+    ).join(Booking).filter(Booking.status == 'active').group_by(Room.building).all()
+
+    by_date = db.session.query(
+        Booking.date, func.count(Booking.id)
+    ).filter(Booking.status == 'active').group_by(Booking.date).order_by(Booking.date).all()
+
+    total_rooms = Room.query.count()
+    total_bookings = Booking.query.filter_by(status='active').count()
+
+    return render_template('admin_stats.html',
+                           by_building=by_building,
+                           by_date=by_date,
+                           total_rooms=total_rooms,
+                           total_bookings=total_bookings)
 
 @app.route('/admin/room', methods=['POST'])
 @login_required
@@ -204,6 +251,9 @@ def api_free_slots(room_id):
 @app.route('/api/bookings', methods=['POST'])
 @login_required
 def api_create_booking():
+    if current_user.role == 'admin':
+        return jsonify({'error': 'FORBIDDEN', 'message': 'Администраторы не могут создавать брони'}), 403
+
     data = request.get_json()
     room_id = data.get('room_id')
     date = data.get('date')

@@ -31,6 +31,7 @@
         <a href="{{ url_for('my_bookings') }}">Мои брони</a>
         {% if current_user.role == 'admin' %}
         <a href="{{ url_for('admin') }}">Админ</a>
+        <a href="{{ url_for('admin_stats') }}">Статистика</a>
         {% endif %}
         <a href="{{ url_for('logout') }}" style="float:right;">Выйти ({{ current_user.display_name }})</a>
     </div>

@@ -7,24 +7,24 @@
     <button class="btn" type="submit">Показать</button>
 </form>
 <h2>Слоты на {{ date }}</h2>
-<table>
-    <tr><th>Время</th><th>Статус</th><th></th></tr>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
     {% for s in slots %}
-    <tr class="{% if s.free %}free{% else %}busy{% endif %}">
-        <td>{{ s.start }} — {{ s.end }}</td>
-        <td>{% if s.free %}Свободно{% else %}Занято{% endif %}</td>
-        <td>
-            {% if s.free %}
-            <form method="post" action="{{ url_for('book') }}" style="display:inline;">
-                <input type="hidden" name="room_id" value="{{ room.id }}">
-                <input type="hidden" name="date" value="{{ date }}">
-                <input type="hidden" name="start_time" value="{{ s.start }}">
-                <input type="hidden" name="end_time" value="{{ s.end }}">
-                <button class="btn btn-success" type="submit">Забронировать</button>
-            </form>
-            {% endif %}
-        </td>
-    </tr>
+    <div style="padding: 10px; border-radius: 6px; min-width: 110px; text-align: center;
+                {% if s.free %}background: #d4edda; border: 1px solid #28a745;{% else %}background: #f8d7da; border: 1px solid #dc3545;{% endif %}">
+        <div style="font-weight: bold;">{{ s.start }}–{{ s.end }}</div>
+        <div style="font-size: 12px;">{% if s.free %}Свободно{% else %}Занято{% endif %}</div>
+        {% if s.free %}
+        <form method="post" action="{{ url_for('book') }}" style="margin-top: 6px;">
+            <input type="hidden" name="room_id" value="{{ room.id }}">
+            <input type="hidden" name="date" value="{{ date }}">
+            <input type="hidden" name="start_time" value="{{ s.start }}">
+            <input type="hidden" name="end_time" value="{{ s.end }}">
+            <button class="btn btn-success" type="submit" style="padding: 4px 10px; font-size: 12px;">Бронь</button>
+        </form>
+        {% elif s.free and current_user.role == 'admin' %}
+            <div style="font-size: 11px; color: #666; margin-top: 6px;">Только просмотр</div>
+        {% endif %}
+    </div>
     {% endfor %}
-</table>
+</div>
 {% endblock %}
