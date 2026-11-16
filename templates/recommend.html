@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Подбор аудитории</h1>
+<form method="get" action="{{ url_for('recommend') }}">
+    <select name="building">
+        <option value="">Любой корпус</option>
+        <option value="A" {% if building == 'A' %}selected{% endif %}>Корпус A</option>
+        <option value="B" {% if building == 'B' %}selected{% endif %}>Корпус B</option>
+        <option value="C" {% if building == 'C' %}selected{% endif %}>Корпус C</option>
+    </select>
+    <input type="number" name="min_capacity" placeholder="Мин. мест" value="{{ min_capacity or '' }}">
+    <input type="text" name="equipment" placeholder="Оборудование (projector,board)" value="{{ equipment or '' }}">
+    <input type="date" name="date" value="{{ date }}" required>
+    <input type="time" name="start_time" value="{{ start_time }}" required>
+    <input type="time" name="end_time" value="{{ end_time }}" required>
+    <button class="btn" type="submit">Найти 3 лучших</button>
+</form>
+
+{% if recommended %}
+<h2>Рекомендуем (свободны в это время):</h2>
+<div style="display: flex; gap: 15px; flex-wrap: wrap;">
+    {% for r in recommended %}
+    <div class="card" style="flex: 1; min-width: 250px; border-left: 4px solid #27ae60;">
+        <h3 style="margin: 0 0 10px 0;">{{ r.name }}</h3>
+        <p>Корпус {{ r.building }}, этаж {{ r.floor }}</p>
+        <p>Вместимость: {{ r.capacity }}</p>
+        <p>Оборудование: {{ r.equipment }}</p>
+        <a class="btn btn-success" href="{{ url_for('room_detail', room_id=r.id, date=date) }}">Забронировать</a>
+    </div>
+    {% endfor %}
+</div>
+{% elif date %}
+<p style="color: #e74c3c;">К сожалению, по вашим параметрам свободных аудиторий не найдено.</p>
+{% endif %}
+{% endblock %}

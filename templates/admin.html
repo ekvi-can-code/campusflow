@@ -27,7 +27,7 @@
     {% endfor %}
 </table>
 
-<h2>Все брони</h2>
+<h2>Все брони <a class="btn" href="{{ url_for('admin_export_csv') }}" style="float:right;">Экспорт CSV</a></h2>
 <table>
     <tr><th>ID</th><th>Аудитория</th><th>Пользователь</th><th>Дата</th><th>Время</th><th>Статус</th><th></th></tr>
     {% for b in bookings %}

@@ -27,7 +27,7 @@
     {% if current_user.is_authenticated %}
     <div class="nav">
         <a href="{{ url_for('index') }}">Главная</a>
-        <a href="{{ url_for('rooms') }}">Аудитории</a>
+        <a href="{{ url_for('recommend') }}">Подобрать</a>
         <a href="{{ url_for('my_bookings') }}">Мои брони</a>
         {% if current_user.role == 'admin' %}
         <a href="{{ url_for('admin') }}">Админ</a>

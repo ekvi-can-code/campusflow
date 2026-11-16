@@ -1,7 +1,43 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>CampusFlow</h1>
-<h2>Все аудитории:</h2>
+<h1>CampusFlow — Аудитории</h1>
+
+<form method="get" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: end;">
+        <div>
+            <label style="font-size: 12px; display: block;">Поиск по названию</label>
+            <input type="text" name="search" placeholder="Например: 101" value="{{ search or '' }}" style="width: 150px;">
+        </div>
+        <div>
+            <label style="font-size: 12px; display: block;">Корпус</label>
+            <select name="building">
+                <option value="">Все</option>
+                <option value="A" {% if building == 'A' %}selected{% endif %}>A</option>
+                <option value="B" {% if building == 'B' %}selected{% endif %}>B</option>
+                <option value="C" {% if building == 'C' %}selected{% endif %}>C</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-size: 12px; display: block;">Мин. мест</label>
+            <input type="number" name="min_capacity" placeholder="20" value="{{ min_capacity or '' }}" style="width: 80px;">
+        </div>
+        <div>
+            <label style="font-size: 12px; display: block;">Оборудование</label>
+            <div style="display: flex; gap: 8px;">
+                <label style="font-size: 12px;"><input type="checkbox" name="equipment_list" value="projector" {% if 'projector' in equipment_list %}checked{% endif %}> Проектор</label>
+                <label style="font-size: 12px;"><input type="checkbox" name="equipment_list" value="board" {% if 'board' in equipment_list %}checked{% endif %}> Доска</label>
+                <label style="font-size: 12px;"><input type="checkbox" name="equipment_list" value="computers" {% if 'computers' in equipment_list %}checked{% endif %}> ПК</label>
+            </div>
+        </div>
+        <div>
+            <button class="btn" type="submit">Поиск</button>
+            <a class="btn btn-danger" href="{{ url_for('index') }}" style="padding: 8px 12px;">Сброс</a>
+        </div>
+    </div>
+</form>
+
+<p>Найдено аудиторий: <b>{{ rooms|length }}</b></p>
+
 <table>
     <tr><th>№</th><th>Корпус</th><th>Этаж</th><th>Вместимость</th><th>Оборудование</th><th></th></tr>
     {% for r in rooms %}
@@ -13,6 +49,8 @@
         <td>{{ r.equipment }}</td>
         <td><a class="btn" href="{{ url_for('room_detail', room_id=r.id) }}">Слоты</a></td>
     </tr>
+    {% else %}
+    <tr><td colspan="6" style="text-align: center; color: #999;">Ничего не найдено</td></tr>
     {% endfor %}
 </table>
 {% endblock %}

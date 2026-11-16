@@ -10,14 +10,14 @@ ENG:
 - View all rooms with filters
 - See free time slots for any date, book a slot if available
 - Own bookings management (create, cancel)
-- Admin panel
+- Admin panel with stats and CSV slots export
 - REST API + simple web UI
 
 RUS:
 - Просмотр всех аудиторий с фильтрацией
 - Просмотр свободных окон для бронирования в любую дату, бронирование по возможности
 - Редактирование своих бронирований (создание, отмена)
-- Админ-панель
+- Админ-панель со статистикой и экспортом CSV таблицы броней
 - REST API + простой веб-интерфейс
 
 ## Installation and launch / Установка и запуск
@@ -33,10 +33,17 @@ python seed.py
 python app.py
 ```
 
-### Requirements / Требования
-- Python 3.10+
+#### Template data from *seed.py*: / Данные из *seed.py*:
+| LOGIN | PASSWORD |
+| --- | --- |
+| `student1` | `123` |
+| `student2` | `123` |
+| `admin` | `admin` |
 
 ## Testing via PyTest / Тестирование через PyTest
 ```bash
 pytest testing.py -v
 ```
+
+## Requirements / Требования
+- Python 3.10+

@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, Response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Room, Booking
 from werkzeug.security import check_password_hash
+import csv
+from io import StringIO
 from datetime import datetime
 
 app = Flask(__name__)
@@ -21,8 +23,30 @@ def load_user(user_id):
 def index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
-    rooms = Room.query.all()
-    return render_template('index.html', rooms=rooms)
+
+    building = request.args.get('building')
+    min_capacity = request.args.get('min_capacity', type=int)
+    equipment_list = request.args.getlist('equipment_list')
+    search = request.args.get('search', '').strip()
+
+    query = Room.query
+    if building:
+        query = query.filter_by(building=building)
+    if min_capacity:
+        query = query.filter(Room.capacity >= min_capacity)
+    for eq in equipment_list:
+        query = query.filter(Room.equipment.contains(eq))
+    if search:
+        query = query.filter(Room.name.contains(search))
+
+    rooms_list = query.all()
+
+    return render_template('index.html',
+                           rooms=rooms_list,
+                           building=building,
+                           min_capacity=min_capacity,
+                           equipment_list=equipment_list,
+                           search=search)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -41,25 +65,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
-
-@app.route('/rooms')
-def rooms():
-    building = request.args.get('building')
-    min_capacity = request.args.get('min_capacity', type=int)
-    equipment_list = request.args.getlist('equipment_list')
-    equipment = ','.join(equipment_list) if equipment_list else ''
-
-    query = Room.query
-    if building:
-        query = query.filter_by(building=building)
-    if min_capacity:
-        query = query.filter(Room.capacity >= min_capacity)
-    for eq in equipment_list:
-        query = query.filter(Room.equipment.contains(eq))
-
-    rooms_list = query.all()
-    return render_template('rooms.html', rooms=rooms_list, building=building,
-                           min_capacity=min_capacity, equipment=equipment)
 
 @app.route('/room/<int:room_id>')
 def room_detail(room_id):
@@ -184,6 +189,31 @@ def admin_stats():
                            total_rooms=total_rooms,
                            total_bookings=total_bookings)
 
+@app.route('/admin/export-csv')
+@login_required
+def admin_export_csv():
+    if current_user.role != 'admin':
+        return '403', 403
+
+    bookings = Booking.query.all()
+
+    si = StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['ID', 'Аудитория', 'Корпус', 'Пользователь', 'Дата', 'Начало', 'Конец', 'Статус', 'Комментарий'])
+
+    for b in bookings:
+        cw.writerow([
+            b.id, b.room.name, b.room.building, b.user.display_name,
+            b.date, b.start_time, b.end_time, b.status, b.comment or ''
+        ])
+
+    output = si.getvalue()
+    return Response(
+        '\ufeff' + output,
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment;filename=bookings.csv'}
+    )
+
 @app.route('/admin/room', methods=['POST'])
 @login_required
 def admin_add_room():
@@ -247,6 +277,52 @@ def api_free_slots(room_id):
             slots.append({'start': start, 'end': end})
         hour += 1
     return jsonify({'room_id': room_id, 'date': date, 'free_slots': slots})
+
+@app.route('/recommend')
+@login_required
+def recommend():
+    building = request.args.get('building')
+    min_capacity = request.args.get('min_capacity', type=int)
+    equipment = request.args.get('equipment')
+    date_val = request.args.get('date')
+    start_time = request.args.get('start_time')
+    end_time = request.args.get('end_time')
+
+    recommended = []
+
+    if date_val and start_time and end_time:
+        query = Room.query
+        if building:
+            query = query.filter_by(building=building)
+        if min_capacity:
+            query = query.filter(Room.capacity >= min_capacity)
+        if equipment:
+            for eq in equipment.split(','):
+                if eq.strip():
+                    query = query.filter(Room.equipment.contains(eq.strip()))
+
+        candidates = query.all()
+
+        for room in candidates:
+            bookings = Booking.query.filter_by(room_id=room.id, date=date_val, status='active').all()
+            is_free = True
+            for b in bookings:
+                if not (end_time <= b.start_time or start_time >= b.end_time):
+                    is_free = False
+                    break
+            if is_free:
+                recommended.append(room)
+            if len(recommended) >= 3:
+                break
+
+    return render_template('recommend.html',
+                           recommended=recommended,
+                           building=building,
+                           min_capacity=min_capacity,
+                           equipment=equipment,
+                           date=date_val,
+                           start_time=start_time,
+                           end_time=end_time)
 
 @app.route('/api/bookings', methods=['POST'])
 @login_required
