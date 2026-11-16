@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{{ room.name }} — Корпус {{ room.building }}, этаж {{ room.floor }}</h1>
+<h1>{{ room.name }} - Корпус {{ room.building }}, этаж {{ room.floor }}</h1>
 <p>Вместимость: {{ room.capacity }}, Оборудование: {{ room.equipment }}</p>
 <form method="get">
     <input type="date" name="date" value="{{ date }}">
